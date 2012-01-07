@@ -5,7 +5,7 @@ Created on 07.01.2012
 '''
 from util.message import Message
 
-class SystemMessage(Message):
+class PrivateMessage(Message):
     
     def __init__(self, source, target, body):
         Message.__init__(self, source, target, body)
