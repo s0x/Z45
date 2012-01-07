@@ -6,5 +6,7 @@
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 2.7</pydev_property>
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 <path>/Z45/src</path>
+<path>/Z45/Z45.env/lib/python2.7/site-packages/dnspython-1.9.4-py2.7.egg</path>
+<path>/Z45/Z45.env/lib/python2.7/site-packages/pyxmpp-1.1.2-py2.7-linux-x86_64.egg</path>
 </pydev_pathproperty>
 </pydev_project>
