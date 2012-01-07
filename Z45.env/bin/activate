@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelavent variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/benjamin/Programmieren/FS/z45/Z45/Z45.env"
+VIRTUAL_ENV="/home/s0x/workspace/python/Z45/Z45.env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

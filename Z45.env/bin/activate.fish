@@ -27,7 +27,7 @@ end
 # unset irrelavent variables
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/home/benjamin/Programmieren/FS/z45/Z45/Z45.env"
+set -gx VIRTUAL_ENV "/home/s0x/workspace/python/Z45/Z45.env"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH
