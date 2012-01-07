@@ -20,5 +20,5 @@ class Message (object):
         return self._Message_Body
     
     def __str__ (self):
-        rep = self._Message_Type +" | "+ self._Recipient +" | "+ self._Message_Body
+        rep = self._Source +" | "+ self._Target +" | "+ self._Message_Body
         return rep
