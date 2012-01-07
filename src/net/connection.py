@@ -43,7 +43,7 @@ class Connection(object):
                 self._listener = None
                 return False
         
-    def connect(self, username=None, password=None):
+    def connect(self, username=None, password=None, server=None, channel=None):
         '''
         Abstract method to connect to the chat protocol.
         '''

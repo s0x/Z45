@@ -16,7 +16,7 @@ class XmppConnection(Connection):
         '''
         Connection.__init__(self, listener)
         
-    def connect(self, username=None, passwort=None):
+    def connect(self, username=None, passwort=None, server=None, channel=None):
         return False
     
     def disconnect(self):
