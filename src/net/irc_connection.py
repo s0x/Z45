@@ -138,6 +138,7 @@ class Receiver(Thread):
             content = string.join(content[2:], ":")
         else:
             content = ""
+        content = string.strip(content)
         if len(parts) > 1:
             operation = parts[1]
         if operation == None:

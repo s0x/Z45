@@ -24,8 +24,10 @@ class PuppetMaster(object):
     def receive(self, sender, msg):
         if isinstance(msg, SystemMessage):
             return
+        
+        msg._Message_Body = msg._Message_Body + " {" + self._bots[sender] + "}"
         print("msg: " + str(msg))
-        for x in self._bots.itervalues():
+        for x in self._bots.iterkeys():
             if sender != x:
                 x.send(msg)
         """source_protokol = msg.get_source()
@@ -47,7 +49,7 @@ class PuppetMaster(object):
         bot = Bot()
         bot.callback(self.receive)
         bot.new_connection(protocol, username=username, password=password, server=server, port=port, channel=channel)
-        self._bots[protocol+":"+channel] = bot
+        self._bots[bot] = protocol
         return bot
     
 if __name__ == '__main__':
