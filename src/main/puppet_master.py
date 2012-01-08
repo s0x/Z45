@@ -46,12 +46,12 @@ class PuppetMaster(object):
     def create_bot(self, protocol, username, password, server, port, channel):
         bot = Bot()
         bot.callback(self.receive)
-        bot.new_connection(protocol, username, password, server, port)
+        bot.new_connection(protocol, username=username, password=password, server=server, port=port, channel=channel)
         self._bots[protocol+":"+channel] = bot
         return bot
     
 if __name__ == '__main__':
     puppet_master = PuppetMaster()
-    puppet_master.create_bot("IRC", "z45", None, "irc.freenode.net", "6667", "#fsmni")
-    puppet_master.create_bot("XMPP", "z45@becauseimaweso.me", "ate8mam6", "conference.jabber.ccc.de", "5222", "thm")
+    puppet_master.create_bot("IRC", username="z45", password=None, server="irc.freenode.net", port="6667", channel="#fh-giessen")
+    puppet_master.create_bot("XMPP", "user@example.com", "password", "conference.jabber.ccc.de", "5222", "thm")
     
