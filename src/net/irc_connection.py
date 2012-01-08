@@ -24,41 +24,31 @@ class IrcConnection(Connection):
     '''
 
 
-    def __init__(self, listener=None):
+    def __init__(self, username, password, server, port=6667, channel=None, listener=None):
         '''
-        Constructor
+        Contructor
         listener should handle a Message
         '''
-        Connection.__init__(self, listener)
+        Connection.__init__(self, username, password, server, port, channel, listener)
         self._socket = None
         self._receiver = None
-        self._host = HOST
-        self._port = PORT
-        self._channel = CHANNEL
         
-    def connect(self, username=None, password=None, server=None, channel=None):
+    def connect(self):
         '''
         Connects to the defined server.
         Only the username is needed.
         '''
-        if username == None:
+        if self._username == None:
             logging.info("An IRC connection without a username is not possible.")
             return False
-        if server != None:
-            server_infos = string.split(server, ":")
-            self._host = server_infos[0]
-            if len(server_infos) > 1:
-                self._port = server_infos[1]
-        if channel != None:
-            self._channel = channel
         self._socket = socket.socket()
-        self._socket.connect((self._host, self._port))
-        self._socket.send("NICK %s\r\n" % username)
-        self._socket.send("USER %s %s bla :%s\r\n" % (username, self._host, username))
+        self._socket.connect((self._server, self._port))
+        self._socket.send("NICK %s\r\n" % self._username)
+        self._socket.send("USER %s %s bla :%s\r\n" % (self._username, self._server, self._username))
         
         self._socket.send("JOIN %s\r\n" % self._channel)
         
-        self._receiver = Receiver(self.notify_msg_listener, self._socket, username, self._channel)
+        self._receiver = Receiver(self._listener, self._socket, self._username, self._channel)
         self._receiver.start()
         logging.debug("IRC connection established.")
         return True
@@ -156,11 +146,11 @@ class Receiver(Thread):
             if len(parts) < 3:
                 return
             elif parts[2] == self._channel:
-                message = Message(u"IRC: " + source, self._channel, unicode(content, "latin-1"))
+                message = Message(source, self._channel, content)
                 self._function(message)
             else:
-                message = PrivateMessage(u"IRC: " + source, parts[2], unicode(content, "latin-1"))
+                message = PrivateMessage(source, parts[2], content)
                 self._function(message)
         else:
-            message = SystemMessage(u"IRC", self._channel, unicode(content, "latin-1"))
+            message = SystemMessage("SYSTEM", self._channel, content)
             self._function(message)
