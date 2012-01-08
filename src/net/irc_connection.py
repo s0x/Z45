@@ -24,31 +24,31 @@ class IrcConnection(Connection):
     '''
 
 
-    def __init__(self, listener=None):
+    def __init__(self, username, password, server, port=6667, channel=None, listener=None):
         '''
         Constructor
         listener should handle a Message
         '''
-        Connection.__init__(self, listener)
+        Connection.__init__(self, username, password, server, port, channel, listener)
         self._socket = None
         self._receiver = None
         
-    def connect(self, username=None, password=None, server=None, channel=None):
+    def connect(self):
         '''
         Connects to the defined server.
         Only the username is needed.
         '''
-        if username == None:
+        if self._username == None:
             logging.info("An IRC connection without a username is not possible.")
             return False
         self._socket = socket.socket()
-        self._socket.connect((HOST, PORT))
-        self._socket.send("NICK %s\r\n" % username)
-        self._socket.send("USER %s %s bla :%s\r\n" % (username, HOST, username))
+        self._socket.connect((self._server, self._port))
+        self._socket.send("NICK %s\r\n" % self._username)
+        self._socket.send("USER %s %s bla :%s\r\n" % (self._username, self._server, self._username))
         
-        self._socket.send("JOIN %s\r\n" % CHANNEL)
+        self._socket.send("JOIN %s\r\n" % self._channel)
         
-        self._receiver = Receiver(self.notify_msg_listener, self._socket, username)
+        self._receiver = Receiver(self._listener, self._socket, self._username, self._channel)
         self._receiver.start()
         logging.debug("IRC connection established.")
         return True
@@ -70,11 +70,11 @@ class IrcConnection(Connection):
         msg has to be a Message, PrivateMessage or SystemMessage.
         '''
         if isinstance(msg, SystemMessage):
-            self._socket.send("PRIVMSG %s :%s\r\n" % (CHANNEL, msg.get_body()))
+            self._socket.send("PRIVMSG %s :%s\r\n" % (self._channel, msg.get_body()))
         elif isinstance(msg, PrivateMessage):
             self._socket.send("PRIVMSG %s :%s\r\n" % (msg.get_target(), msg.get_source() +":"+ msg.get_body()))
         else:
-            self._socket.send("PRIVMSG %s :%s\r\n" % (CHANNEL, msg.get_source() +":"+ msg.get_body()))
+            self._socket.send("PRIVMSG %s :%s\r\n" % (self._channel, msg.get_source() +":"+ msg.get_body()))
         return True
     
 class Receiver(Thread):
@@ -82,7 +82,7 @@ class Receiver(Thread):
     Thread which manages new messages by the server.
     '''
     
-    def __init__(self, function, socket, name):
+    def __init__(self, function, socket, name, channel):
         '''
         Constructor
         function should be able to handle a Message.
@@ -93,6 +93,7 @@ class Receiver(Thread):
         self._function = function
         self._socket = socket
         self._name = name
+        self._channel = channel
         
     def stop_listening(self):
         '''
@@ -145,11 +146,11 @@ class Receiver(Thread):
             if len(parts) < 3:
                 return
             elif parts[2] == CHANNEL:
-                message = Message("IRC:" + source, CHANNEL, content)
+                message = Message(source, self._channel, content)
                 self._function(message)
             else:
-                message = PrivateMessage("IRC:" + source, parts[2], content)
+                message = PrivateMessage(source, parts[2], content)
                 self._function(message)
         else:
-            message = SystemMessage("IRC", CHANNEL, content)
+            message = SystemMessage("SYSTEM", self._channel, content)
             self._function(message)

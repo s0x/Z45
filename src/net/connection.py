@@ -10,11 +10,16 @@ class Connection(object):
     '''
 
 
-    def __init__(self, listener=None):
+    def __init__(self, username, password, server, port=None, channel=None, listener=None):
         '''
         Constructor
         The message listener of this connection could be set.
         '''
+        self._username = username
+        self._password = password
+        self._server = server
+        self._port = port
+        self._channel = channel
         self._listener = listener
     
     def send(self, msg):
@@ -43,7 +48,7 @@ class Connection(object):
                 self._listener = None
                 return False
         
-    def connect(self, username=None, password=None, server=None, channel=None):
+    def connect(self):
         '''
         Abstract method to connect to the chat protocol.
         '''

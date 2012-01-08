@@ -12,13 +12,14 @@ class Bot (object):
         self._connection = None
         self._function = None
     
-    def new_connection (self, protocol, name):
+    def new_connection (self, protocol, username, password, server, port=None, channel=None):
         if protocol == "IRC":
-            self._connection = IrcConnection(self.listen)
-            self._connection.connect(username="Z45_"+name)
+            self._connection = IrcConnection(username=username, password=password, server=server, channel=channel, listener=self.listen)
+            self._connection.connect()
         if protocol == "XMPP":
-            self._connection = XmppConnection(self.listen)
-            self._connection.connect(username="Z45@becauseimaweso.me", password="12345", channel="thm@conference.jabber.ccc.de")
+            self._connection = XmppConnection(username=username, password=password,
+                                              server="conference.jabber.ccc.de", channel="thm", listener=self.listen)
+            self._connection.connect()
     
     def listen (self, msg):
         if self._function != None:

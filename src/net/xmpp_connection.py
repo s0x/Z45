@@ -27,37 +27,39 @@ class XmppConnection(Connection, Thread):
     classdocs
     '''
 
-    def __init__(self, listener=None):
+    def __init__(self, username, password, server, port=None, channel=None, listener=None):
         '''
         Constructor
         '''
-        Connection.__init__(self, listener)
+        Connection.__init__(self, username, password, server, port, channel, listener)
         Thread.__init__(self);
-        self.c = None
+        self._client = None
         
-    def connect(self, username=None, password=None, server=None, channel=None, tls_cacerts = None):
+    def connect(self, tls_cacerts=None):
         self.set_encoding()
         self.set_logging()
         
         print u"creating client..."
         # JID password ['tls_noverify'|cacert_file]
-        self.c = Client(JID(username), password, tls_cacerts, channel)
-        self.c.set_notify_msg_listener(self.notify_msg_listener)
+        self._client = Client(JID(self._username), password=self._password,
+                              server=self._server, port=self._port, channel=self._channel, 
+                              tls_cacerts=tls_cacerts, listener=self._listener)
+        
         print u"connecting..."
-        self.c.connect()
+        self._client.connect()
         self.start()
         
         return True
 
     def run(self):
-        self.c.loop(1)
+        self._client.loop(1)
     
     def disconnect(self):
-        self.c.disconnect()
+        self._client.disconnect()
         return True
     
     def send(self, msg):
-        self.c.roomState.send_message(msg.get_source() + u": " + msg.get_body())
+        self._client._roomState.send_message(msg.get_source() + u": " + msg.get_body())
         return True
     
     def set_encoding(self):
@@ -86,12 +88,15 @@ class Client(JabberClient):
     and port discovery based on the JID provided.
     '''
     
-    def __init__(self, jid, password, tls_cacerts, channel):
-        self.notify_msg_listener = None
-        self.channel = channel;
+    def __init__(self, jid, password, server, port=5222, channel=None, tls_cacerts=None, listener=None):
+        self._jid = jid
+        self._server = server
+        self._port = port
+        self._channel = channel
+        self._listener = listener
         # if bare JID is provided add a resource -- it is required
-        if not jid.resource:
-            jid=JID(jid.node, jid.domain, "Echobot")
+        if not self._jid.resource:
+            self._jid=JID(self._jid.node, self._jid.domain, "Echobot")
 
         if tls_cacerts:
             if tls_cacerts == 'tls_noverify':
@@ -103,18 +108,18 @@ class Client(JabberClient):
             
         # setup client with provided connection information
         # and identity data
+        JabberClient.__init__(self, jid=self._jid, password=password, disco_name="Datenverarbeitungseinheit Z45", disco_type="z45", tls_settings=tls_settings)
+        '''
         JabberClient.__init__(self, jid, password,
                 disco_name="Datenverarbeitungseinheit Z45", disco_type="z45",
                 tls_settings = tls_settings)
+        '''
 
         # add the separate components
         self.interface_providers = [
             VersionHandler(self),
             EchoHandler(self),
             ]
-        
-    def set_notify_msg_listener(self, notify_msg_listener):
-        self.notify_msg_listener = notify_msg_listener
     
     def session_started(self):
         """Handle session started event. May be overriden in derived classes. 
@@ -124,20 +129,20 @@ class Client(JabberClient):
         p=Presence() 
         self.stream.send(p) 
         print u'ConnectToParty'
-        self.connectToMUC()
+        if self._channel:
+            self.connectToMUC()
     
     def connectToMUC(self):
-        self.roomManager = MucRoomManager(self.stream);
-        channel_el = string.split(self.channel, "@")
-        self.roomHandler = ChatHandler(JID(channel_el[0], channel_el[1], "z45"), self.notify_msg_listener)
-        self.roomState = self.roomManager.join(
-        room=JID(self.channel),
+        self._roomManager = MucRoomManager(self.stream);
+        self._roomHandler = ChatHandler(JID(self._channel, self._server, self._jid.node), self._listener)
+        self._roomState = self._roomManager.join(
+        room=JID(self._channel + "@" + self._server),
         nick='z45',
-        handler=self.roomHandler, 
+        handler=self._roomHandler, 
         history_maxchars=0,
         password = None)
-        self.roomManager.set_handlers()
-        self.roomState.send_message("Sending this Message")
+        self._roomManager.set_handlers()
+        #self._roomState.send_message("Sending this Message")
         
         
     def stream_state_changed(self,state,arg):
@@ -168,10 +173,10 @@ class Client(JabberClient):
 
 class ChatHandler(MucRoomHandler):
     
-    def __init__(self, jid, notify_msg_listener = None):
+    def __init__(self, jid, listener=None):
         MucRoomHandler.__init__(self)
-        self.notify_msg_listener = notify_msg_listener
-        self.jid = jid
+        self._listener = listener
+        self._jid = jid
     
     def user_joined(self, user, stanza):
         MucRoomHandler.user_joined(self, user, stanza)
@@ -192,11 +197,10 @@ class ChatHandler(MucRoomHandler):
     def message_received(self, user, stanza):
         MucRoomHandler.message_received(self, user, stanza)
         print str(user.room_jid)
-        if self.jid != user.room_jid:
-
+        if self._jid != user.room_jid and self._listener:
             msg = util.message.Message(user.nick, user.room_jid.node+u"@"+user.room_jid.domain, stanza.get_body())
             print(str(msg))
-            self.notify_msg_listener(msg)
+            self._listener(msg)
     pass
 
 class EchoHandler(object):
