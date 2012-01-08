@@ -8,6 +8,7 @@ import sys
 import codecs
 import logging
 import string
+import util
 
 from net.connection import Connection
 from threading import Thread
@@ -113,7 +114,7 @@ class Client(JabberClient):
             ]
         
     def set_notify_msg_listener(self, notify_msg_listener):
-        self.notify_msg_listener
+        self.notify_msg_listener = notify_msg_listener
     
     def session_started(self):
         """Handle session started event. May be overriden in derived classes. 
@@ -192,7 +193,8 @@ class ChatHandler(MucRoomHandler):
         MucRoomHandler.message_received(self, user, stanza)
         print str(user.room_jid)
         if self.jid != user.room_jid:
-            msg = Message(user.nick, user.room_jid.node+'@'+user.room_jid.domain, stanza.get_body())
+
+            msg = util.message.Message(user.nick, user.room_jid.node+u"@"+user.room_jid.domain, stanza.get_body())
             print(str(msg))
             self.notify_msg_listener(msg)
     pass
