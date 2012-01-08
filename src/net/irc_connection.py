@@ -145,7 +145,7 @@ class Receiver(Thread):
         elif operation == "PRIVMSG":
             if len(parts) < 3:
                 return
-            elif parts[2] == CHANNEL:
+            elif parts[2] == self._channel:
                 message = Message(source, self._channel, content)
                 self._function(message)
             else:
