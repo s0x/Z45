@@ -48,7 +48,7 @@ class IrcConnection(Connection):
         
         self._socket.send("JOIN %s\r\n" % CHANNEL)
         
-        self._receiver = Receiver(self.notify_msg_listener, self._socket)
+        self._receiver = Receiver(self.notify_msg_listener, self._socket, username)
         self._receiver.start()
         logging.debug("IRC connection established.")
         return True
@@ -72,16 +72,17 @@ class IrcConnection(Connection):
         if isinstance(msg, SystemMessage):
             self._socket.send("PRIVMSG %s :%s\r\n" % (CHANNEL, msg.get_body()))
         elif isinstance(msg, PrivateMessage):
-            self._socket.send("PRIVMSG %s :%s\r\n" % (msg.get_target(), msg.get_body()))
+            self._socket.send("PRIVMSG %s :%s\r\n" % (msg.get_target(), msg.get_source() +":"+ msg.get_body()))
         else:
-            self._socket.send("PRIVMSG %s :%s\r\n" % (CHANNEL, msg.get_body()))
+            self._socket.send("PRIVMSG %s :%s\r\n" % (CHANNEL, msg.get_source() +":"+ msg.get_body()))
+        return True
     
 class Receiver(Thread):
     '''
     Thread which manages new messages by the server.
     '''
     
-    def __init__(self, function, socket):
+    def __init__(self, function, socket, name):
         '''
         Constructor
         function should be able to handle a Message.
@@ -91,6 +92,7 @@ class Receiver(Thread):
         self._running = True
         self._function = function
         self._socket = socket
+        self._name = name
         
     def stop_listening(self):
         '''
@@ -126,6 +128,8 @@ class Receiver(Thread):
         source = string.split(msg, "!")[0]
         if len(source) > 1:
             source = source[1:]
+        if source == self._name:
+            return
         parts = string.split(msg, " ")
         operation = None
         content = string.split(msg, ":")
@@ -141,11 +145,11 @@ class Receiver(Thread):
             if len(parts) < 3:
                 return
             elif parts[2] == CHANNEL:
-                message = Message(source, CHANNEL, content)
+                message = Message("IRC:" + source, CHANNEL, content)
                 self._function(message)
             else:
-                message = PrivateMessage(source, parts[2], content)
+                message = PrivateMessage("IRC:" + source, parts[2], content)
                 self._function(message)
         else:
-            message = SystemMessage(CHANNEL, content)
+            message = SystemMessage("IRC", CHANNEL, content)
             self._function(message)
