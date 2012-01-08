@@ -56,7 +56,7 @@ class XmppConnection(Connection, Thread):
         return True
     
     def send(self, msg):
-        self.c.stream.send(msg.get_source() + u": " + msg.get_body())
+        self.c.roomState.send_message(msg.get_source() + u": " + msg.get_body())
         return True
     
     def set_encoding(self):
