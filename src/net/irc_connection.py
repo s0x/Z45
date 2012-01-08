@@ -26,7 +26,7 @@ class IrcConnection(Connection):
 
     def __init__(self, username, password, server, port=6667, channel=None, listener=None):
         '''
-        Constructor
+        Contructor
         listener should handle a Message
         '''
         Connection.__init__(self, username, password, server, port, channel, listener)
@@ -72,9 +72,9 @@ class IrcConnection(Connection):
         if isinstance(msg, SystemMessage):
             self._socket.send("PRIVMSG %s :%s\r\n" % (self._channel, msg.get_body()))
         elif isinstance(msg, PrivateMessage):
-            self._socket.send("PRIVMSG %s :%s\r\n" % (msg.get_target(), msg.get_source() +":"+ msg.get_body()))
+            self._socket.send("PRIVMSG %s :%s\r\n" % (msg.get_target(), msg.get_source() +": "+ msg.get_body()))
         else:
-            self._socket.send("PRIVMSG %s :%s\r\n" % (self._channel, msg.get_source() +":"+ msg.get_body()))
+            self._socket.send("PRIVMSG %s :%s\r\n" % (self._channel, msg.get_source() +": "+ msg.get_body()))
         return True
     
 class Receiver(Thread):
