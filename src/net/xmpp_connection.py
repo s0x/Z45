@@ -194,7 +194,7 @@ class ChatHandler(MucRoomHandler):
         print str(user.room_jid)
         if self.jid != user.room_jid:
 
-            msg = util.message.Message(user.nick, user.room_jid.node+u"@"+user.room_jid.domain, stanza.get_body())
+            msg = util.message.Message("XMPP: " + user.nick, user.room_jid.node+u"@"+user.room_jid.domain, stanza.get_body())
             print(str(msg))
             self.notify_msg_listener(msg)
     pass
