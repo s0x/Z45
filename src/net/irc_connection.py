@@ -135,7 +135,7 @@ class Receiver(Thread):
         operation = None
         content = string.split(msg, ":")
         if len(content) > 2:
-            content = content[2]
+            content = string.join(content[2:], ":")
         else:
             content = ""
         if len(parts) > 1:
