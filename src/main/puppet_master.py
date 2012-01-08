@@ -21,12 +21,13 @@ class PuppetMaster(object):
         '''
         self._bots = {}
         
-    def receive(self, msg):
+    def receive(self, sender, msg):
         if isinstance(msg, SystemMessage):
             return
         print("msg: " + str(msg))
         for x in self._bots.itervalues():
-            x.send(msg)
+            if sender != x:
+                x.send(msg)
         """source_protokol = msg.get_source()
         source_protokol = string.split(source_protokol, ":")[0]
         if source_protokol == "IRC":
@@ -52,5 +53,5 @@ class PuppetMaster(object):
 if __name__ == '__main__':
     puppet_master = PuppetMaster()
     puppet_master.create_bot("IRC", "z45", None, "irc.freenode.net", "6667", "#fsmni")
-    puppet_master.create_bot("XMPP", "z45@becauseimaweso.me", "12345", "conference.jabber.ccc.de", "5222", "thm")
+    puppet_master.create_bot("XMPP", "z45@becauseimaweso.me", "ate8mam6", "conference.jabber.ccc.de", "5222", "thm")
     

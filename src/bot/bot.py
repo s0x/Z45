@@ -23,7 +23,7 @@ class Bot (object):
     
     def listen (self, msg):
         if self._function != None:
-            self._function(msg)
+            self._function(self, msg)
             return True
         return False
     

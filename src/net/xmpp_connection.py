@@ -27,7 +27,7 @@ class XmppConnection(Connection, Thread):
     classdocs
     '''
 
-    def __init__(self, username, password, server, port=None, channel=None, listener=None):
+    def __init__(self, username, password, server, port=5222, channel=None, listener=None):
         '''
         Constructor
         '''
