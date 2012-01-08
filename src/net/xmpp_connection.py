@@ -56,7 +56,7 @@ class XmppConnection(Connection, Thread):
         return True
     
     def send(self, msg):
-        self.c.stream.send(msg)
+        self.c.stream.send(msg.get_source() + u": " + msg.get_body())
         return True
     
     def set_encoding(self):
@@ -127,7 +127,7 @@ class Client(JabberClient):
     
     def connectToMUC(self):
         self.roomManager = MucRoomManager(self.stream);
-        channel_el = string.split(self.channel, '@')
+        channel_el = string.split(self.channel, "@")
         self.roomHandler = ChatHandler(JID(channel_el[0], channel_el[1], "z45"), self.notify_msg_listener)
         self.roomState = self.roomManager.join(
         room=JID(self.channel),
