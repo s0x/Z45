@@ -7,6 +7,7 @@ import locale
 import sys
 import codecs
 import logging
+import string
 
 from net.connection import Connection
 from threading import Thread
@@ -17,6 +18,8 @@ from pyxmpp.interfaces import IMessageHandlersProvider, IPresenceHandlersProvide
 from pyxmpp.interfaces import IIqHandlersProvider, IFeaturesProvider
 from pyxmpp.streamtls import TLSSettings
 from pyxmpp.jabber.muc import MucRoomManager, MucRoomHandler
+from pyxmpp.stanza import Stanza
+from util.system_message import SystemMessage
 
 class XmppConnection(Connection, Thread):
     '''
@@ -37,7 +40,8 @@ class XmppConnection(Connection, Thread):
         
         print u"creating client..."
         # JID password ['tls_noverify'|cacert_file]
-        self.c = Client(JID(username), password, tls_cacerts)
+        self.c = Client(JID(username), password, tls_cacerts, channel)
+        self.c.set_notify_msg_listener(self.notify_msg_listener)
         print u"connecting..."
         self.c.connect()
         self.start()
@@ -51,8 +55,9 @@ class XmppConnection(Connection, Thread):
         self.c.disconnect()
         return True
     
-    def send(self):
-        return False
+    def send(self, msg):
+        self.c.stream.send(msg)
+        return True
     
     def set_encoding(self):
         # XMPP protocol is Unicode-based to properly display data received
@@ -80,7 +85,9 @@ class Client(JabberClient):
     and port discovery based on the JID provided.
     '''
     
-    def __init__(self, jid, password, tls_cacerts):
+    def __init__(self, jid, password, tls_cacerts, channel):
+        self.notify_msg_listener = None
+        self.channel = channel;
         # if bare JID is provided add a resource -- it is required
         if not jid.resource:
             jid=JID(jid.node, jid.domain, "Echobot")
@@ -104,6 +111,9 @@ class Client(JabberClient):
             VersionHandler(self),
             EchoHandler(self),
             ]
+        
+    def set_notify_msg_listener(self, notify_msg_listener):
+        self.notify_msg_listener
     
     def session_started(self):
         """Handle session started event. May be overriden in derived classes. 
@@ -117,10 +127,11 @@ class Client(JabberClient):
     
     def connectToMUC(self):
         self.roomManager = MucRoomManager(self.stream);
-        self.roomHandler = MucRoomHandler()
+        channel_el = string.split(self.channel, '@')
+        self.roomHandler = ChatHandler(JID(channel_el[0], channel_el[1], "z45"), self.notify_msg_listener)
         self.roomState = self.roomManager.join(
-        room=JID('thm@conference.jabber.ccc.de'),
-        nick='Z45',
+        room=JID(self.channel),
+        nick='z45',
         handler=self.roomHandler, 
         history_maxchars=0,
         password = None)
@@ -153,6 +164,38 @@ class Client(JabberClient):
             return
         print u"Roster item updated:"
         self.print_roster_item(item)
+
+class ChatHandler(MucRoomHandler):
+    
+    def __init__(self, jid, notify_msg_listener = None):
+        MucRoomHandler.__init__(self)
+        self.notify_msg_listener = notify_msg_listener
+        self.jid = jid
+    
+    def user_joined(self, user, stanza):
+        MucRoomHandler.user_joined(self, user, stanza)
+        
+    def user_left(self, user, stanza):
+        MucRoomHandler.user_left(self, user, stanza)
+        
+    def role_changed(self, user, old_role, new_role, stanza):
+        MucRoomHandler.role_changed(self, user, old_role, new_role, stanza)
+        
+    def nick_changed(self, user, old_nick, stanza):
+        MucRoomHandler.nick_changed(self, user, old_nick, stanza)
+        
+    def subject_changed(self, user, stanza):
+        MucRoomHandler.subject_changed(self, user, stanza)
+        #msg = Sy
+        
+    def message_received(self, user, stanza):
+        MucRoomHandler.message_received(self, user, stanza)
+        print str(user.room_jid)
+        if self.jid != user.room_jid:
+            msg = Message(user.nick, user.room_jid.node+'@'+user.room_jid.domain, stanza.get_body())
+            print(str(msg))
+            self.notify_msg_listener(msg)
+    pass
 
 class EchoHandler(object):
     """Provides the actual 'echo' functionality.
