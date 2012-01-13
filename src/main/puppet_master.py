@@ -6,6 +6,9 @@ Created on 07.01.2012
 
 from util.system_message import SystemMessage
 from bot.bot import Bot
+
+import config
+
 import string
 
 class PuppetMaster(object):
@@ -54,6 +57,6 @@ class PuppetMaster(object):
     
 if __name__ == '__main__':
     puppet_master = PuppetMaster()
-    puppet_master.create_bot("IRC", username="z45", password=None, server="irc.freenode.net", port="6667", channel="#fh-giessen")
-    puppet_master.create_bot("XMPP", "user@example.com", "password", "conference.jabber.ccc.de", "5222", "thm")
+    for conf in config.configs:
+        puppet_master.create_bot(*conf)
     

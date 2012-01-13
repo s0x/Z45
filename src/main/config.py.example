@@ -1,0 +1,14 @@
+'''
+Created on 12.01.2012
+
+@author: benjamin
+'''
+
+"""
+    list of configs
+    config = [ [protocol1, name1,  passwd1, server1, port1,  channel1], \
+                [protocol2, name2,  passwd2, server2, port2,  channel2] ]
+"""
+
+configs = [ ["IRC", "name", None, "irc.freenode.net", 6667, "#channel"], \
+           ["XMPP", "name@server.net", "passwd", None, None, "#channel@server.de"] ]
